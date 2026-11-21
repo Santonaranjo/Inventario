@@ -31,11 +31,22 @@
 13. **Tipos:** se versiona `openapi/openapi.json` para poder regenerar `src/types/api.d.ts` sin la API
     (`npm run gen:types:file`). Se generó **desde el código del backend** (`app.openapi()`), sin base de datos.
 
-## Verificación pendiente
+## Verificación contra la API real (Docker)
 
-- [ ] **Probar contra la API real.** En este equipo no hay Docker, así que los módulos se verificaron con
-      `typecheck`, `lint`, `next build` y las pruebas con MSW, **no contra el backend corriendo**. Al
-      levantarlo: `npm run gen:types` (debería no cambiar nada), recorrer las pantallas y correr `npm run test:e2e`.
+Hecha con el backend en Docker + seed:
+- [x] `npm run gen:types` desde la API viva: **sin diferencias** con los tipos versionados.
+- [x] Login/logout por rol, redirecciones y protección de rutas (ADMIN ↔ CLIENTE).
+- [x] **Refresh real:** con un access token vencido, 3 requests simultáneos reciben `TOKEN_EXPIRADO` → **un solo**
+      `POST /auth/refresh` → los 3 se reintentan con 200 y el refresh token rota.
+- [x] Productos (crear, `SKU_DUPLICADO`), kardex (ENTRADA, SALIDA con `STOCK_INSUFICIENTE`).
+- [x] Ventas: confirmar, facturar (IVA 19 %), anular con motivo (factura anulada y stock devuelto).
+- [x] Carrito → compra pagada; `STOCK_INSUFICIENTE` al crear (no se crea venta) y **al confirmar** (queda PENDIENTE).
+- [x] Venta ajena de otro cliente → 404 "Venta no encontrada". `PASSWORD_INCORRECTO` en el campo.
+- [x] `npm run test:e2e` (Playwright con `PW_CHANNEL=chrome`): 2/2.
+
+Mejoras que salieron de estas pruebas (ya aplicadas): errores de negocio ligados a un campo (`SKU_DUPLICADO`,
+`EMAIL_DUPLICADO`, `STOCK_INSUFICIENTE`…) se marcan en ese input; el logout ya no deja `?next=` en la URL;
+las cantidades del carrito tienen nombre accesible único ("Cantidad de …").
 
 ## Pedidos para el backend (Santiago)
 
@@ -53,6 +64,11 @@
 7. **Sin buscador de usuarios CLIENTE sin ficha** para vincular desde Clientes (`GET /usuarios?rol=CLIENTE&sin_cliente=true`).
 8. **Rutas del README/handoff** apuntan a la carpeta de Santiago (`C:\Users\Santiago\...`); conviene usar rutas relativas.
 9. **Python:** el README pide 3.12; con 3.11 al menos `app.openapi()` funciona (no se probó el resto).
+10. **Puerto de Postgres fijo en 5432** en `docker-compose.yml`. Si el equipo ya tiene PostgreSQL (aquí 5432-5434
+    estaban ocupados), toca editar el archivo versionado. Sugerencia: `"${DB_PORT:-5432}:5432"`. Mientras tanto, se
+    puede usar un `docker-compose.override.yml` local (no versionado) con `ports: !override ["5435:5432"]`.
+11. **`pip install` en el Dockerfile falla con redes lentas** ("No matching distribution found" por timeout).
+    Sugerencia: `ENV PIP_DEFAULT_TIMEOUT=120 PIP_RETRIES=10` en el `Dockerfile`.
 
 ## Mejoras futuras
 

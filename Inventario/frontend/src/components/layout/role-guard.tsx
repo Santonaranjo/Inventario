@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
-import { homeForRol } from "@/lib/api/session";
+import { getLastSessionReason, homeForRol } from "@/lib/api/session";
 import type { RolUsuario } from "@/types";
 import { LoadingScreen } from "./loading-screen";
 
@@ -21,7 +21,10 @@ export function RoleGuard({ roles, children }: { roles?: RolUsuario[]; children:
 
   useEffect(() => {
     if (status === "anonymous") {
-      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+      // Tras un logout voluntario no se guarda la ruta: el próximo usuario puede ser otro.
+      router.replace(
+        getLastSessionReason() === "logout" ? "/login" : `/login?next=${encodeURIComponent(pathname)}`,
+      );
     } else if (status === "authenticated" && usuario && roles && !roles.includes(usuario.rol)) {
       router.replace(homeForRol(usuario.rol));
     }

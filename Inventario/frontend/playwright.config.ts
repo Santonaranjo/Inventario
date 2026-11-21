@@ -10,7 +10,8 @@ export default defineConfig({
     baseURL: "http://localhost:3000",
     trace: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // PW_CHANNEL=chrome (o msedge) usa el navegador ya instalado y evita `npx playwright install`.
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], channel: process.env.PW_CHANNEL || undefined } }],
   webServer: {
     command: "npm run dev",
     url: "http://localhost:3000/login",

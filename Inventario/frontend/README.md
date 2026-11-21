@@ -11,6 +11,14 @@ Todos los comandos son para **PowerShell en Windows**. Si la ruta tiene espacios
 - **Node.js 20.9 o superior** (probado con Node 24) y npm.
 - La **API corriendo** en `http://localhost:8000` (ver `backend/README.md`; con Docker:
   `docker compose up -d --build` y `docker compose exec api python -m app.seed`).
+  > Si el puerto 5432 ya lo usa otro PostgreSQL, crea `backend/docker-compose.override.yml` (no lo subas):
+  > ```yaml
+  > services:
+  >   db:
+  >     ports: !override
+  >       - "5435:5432"
+  > ```
+  > La API no cambia (dentro de Docker usa `db:5432`); solo cambia el puerto para conectarte desde Windows.
 
 ## Instalación
 
@@ -79,8 +87,11 @@ No necesitan la API: MSW simula las respuestas. Cubren:
 
 E2E (requiere la API con el seed; si no está arriba, las pruebas se saltan):
 ```powershell
-npx playwright install chromium   # solo la primera vez
+npx playwright install chromium   # solo la primera vez (o usa tu Chrome: ver abajo)
 npm run test:e2e
+
+# Con el Chrome ya instalado, sin descargar navegadores:
+$env:PW_CHANNEL = "chrome"; npm run test:e2e
 ```
 
 ## Estructura

@@ -22,7 +22,8 @@ test("ADMIN: login redirige al dashboard y logout vuelve al login", async ({ pag
   await expect(page).toHaveURL(/\/admin$/);
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await page.getByRole("button", { name: /salir|cerrar sesión/i }).click();
-  await expect(page).toHaveURL(/\/login/);
+  // Tras un logout voluntario no queda ?next= en la URL.
+  await expect(page).toHaveURL(/\/login$/);
   // Sin sesión, las rutas privadas mandan al login.
   await page.goto("/admin/productos");
   await expect(page).toHaveURL(/\/login\?next=/);

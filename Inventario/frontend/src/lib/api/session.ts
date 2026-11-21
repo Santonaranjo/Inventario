@@ -13,8 +13,16 @@ export type SessionChangeReason = "login" | "refresh" | "logout" | "expired" | "
 
 const isBrowser = () => typeof window !== "undefined";
 
+let lastReason: SessionChangeReason | null = null;
+
+/** Último motivo de cambio de sesión en esta pestaña (p. ej. para no guardar ?next= tras un logout). */
+export function getLastSessionReason(): SessionChangeReason | null {
+  return lastReason;
+}
+
 function emit(reason: SessionChangeReason) {
   if (!isBrowser()) return;
+  lastReason = reason;
   window.dispatchEvent(new CustomEvent(SESSION_EVENT, { detail: reason }));
 }
 

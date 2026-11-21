@@ -107,7 +107,7 @@ export default function CarritoPage() {
                   </div>
                   <div className="grid gap-1">
                     <Label htmlFor={`cant-${i.producto_id}`} className="text-xs">
-                      Cantidad
+                      Cantidad<span className="sr-only"> de {i.nombre}</span>
                     </Label>
                     <Input
                       id={`cant-${i.producto_id}`}
