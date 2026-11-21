@@ -29,12 +29,14 @@ Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Abre http://localhost:3000. Usuarios del seed:
+Abre http://localhost:3000. Usuarios de prueba (solo desarrollo), según la base que use la API:
 
-| Rol | Email | Contraseña |
-|---|---|---|
-| ADMIN | `admin@inventario.com` | `Admin123*` |
-| CLIENTE | `cliente@inventario.com` | `Cliente123*` |
+| Rol | Base PostgreSQL 17 (`database/inventario_backend.sql`) | Base de Docker con `python -m app.seed` | Contraseña |
+|---|---|---|---|
+| ADMIN | `admin@inventario.com` | `admin@inventario.com` | `Admin123*` |
+| CLIENTE | `carlos.ramirez@correo.com` | `cliente@inventario.com` | `Cliente123*` |
+
+Para el e2e contra la base de PostgreSQL 17: `$env:E2E_CLIENTE_EMAIL = "carlos.ramirez@correo.com"`.
 
 > Si Next corre en otro puerto u origen, agrégalo a `CORS_ORIGINS` en `backend/.env` y reinicia la API.
 
