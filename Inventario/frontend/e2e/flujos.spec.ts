@@ -1,8 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-// Usuarios del seed del backend (python -m app.seed).
-const ADMIN = { email: "admin@inventario.com", password: "Admin123*" };
-const CLIENTE = { email: "cliente@inventario.com", password: "Cliente123*" };
+// Por defecto, usuarios del seed del backend (python -m app.seed). Se pueden cambiar con variables
+// de entorno, p. ej. con la base de PostgreSQL 17: E2E_CLIENTE_EMAIL=carlos.ramirez@correo.com
+const ADMIN = {
+  email: process.env.E2E_ADMIN_EMAIL ?? "admin@inventario.com",
+  password: process.env.E2E_ADMIN_PASSWORD ?? "Admin123*",
+};
+const CLIENTE = {
+  email: process.env.E2E_CLIENTE_EMAIL ?? "cliente@inventario.com",
+  password: process.env.E2E_CLIENTE_PASSWORD ?? "Cliente123*",
+};
 const HEALTH = "http://localhost:8000/health";
 
 test.beforeAll(async ({ request }) => {
