@@ -103,45 +103,54 @@ backend**, no editando este archivo.
 
 ---
 
-## 3. Backend (`backend/`)
+## 3. Backend (`backend/`) y Docker
 
-**No se modificó ningún archivo versionado del backend ni de `docs/`.** Solo se crearon archivos
-**locales** para poder ejecutarlo en este equipo (no se suben al repo):
+Con la aprobación de Santiago se hicieron estos cambios de **configuración Docker** (no se tocó código de
+la API: `app/`, `alembic/` ni `tests/` siguen igual):
+
+| Archivo | Cambio |
+|---|---|
+| `backend/docker-compose.yml` | Nuevo servicio **`frontend`** (Next.js en el puerto `FRONTEND_PORT`, por defecto 3000): `docker compose up` levanta base de datos, API y frontend. El puerto de Postgres en Windows ahora es configurable: `"${DB_PORT:-5432}:5432"`. |
+| `backend/Dockerfile` | `PIP_DEFAULT_TIMEOUT=120` y `PIP_RETRIES=10`: con redes lentas `pip install` fallaba con "No matching distribution". |
+| `backend/.env.example` | Nuevo (el README ya pedía `Copy-Item .env.example .env`, pero no existía). Incluye `DB_PORT`, `FRONTEND_PORT` y `NEXT_PUBLIC_API_URL`. |
+| `backend/README.md` | Cómo levantar todo con Docker, cómo cambiar puertos sin editar `docker-compose.yml` y las variables nuevas. |
+| `.gitignore` (raíz) | Nuevo: ignora `.env`, `docker-compose.override.yml`, cachés de Python y carpetas de editores. |
+| `frontend/Dockerfile`, `frontend/.dockerignore`, `output: "standalone"` en `frontend/next.config.ts` | Imagen del frontend en 3 etapas (dependencias, build, ejecución) con el servidor mínimo de Next. |
+
+**Importante sobre `NEXT_PUBLIC_API_URL`:** se incrusta en el JavaScript al construir la imagen y la usa el
+**navegador**, por eso es `http://localhost:8000/api/v1` y no el nombre del servicio `api`. Si se cambia,
+hay que reconstruir el frontend (`docker compose up -d --build frontend`).
+
+### Configuración local de este equipo (no se sube)
 
 | Archivo local | Para qué |
 |---|---|
-| `backend/.env` | El repo no trae `.env.example`. Tiene `JWT_SECRET_KEY` aleatoria, `CORS_ORIGINS` con `http://localhost:3000` y `DATABASE_URL` hacia PostgreSQL 17 (`localhost:5434`). |
-| `backend/docker-compose.override.yml` | Publica el Postgres de Docker en el puerto **5435** (el 5432 estaba ocupado) y hace que la API use PostgreSQL 17 (`host.docker.internal:5434`). |
+| `backend/.env` | `JWT_SECRET_KEY` aleatoria, `DB_PORT=5435` (5432-5434 los usan los PostgreSQL de Windows) y `DATABASE_URL` hacia PostgreSQL 17 (`localhost:5434`). |
+| `backend/docker-compose.override.yml` | Hace que la API use la base de PostgreSQL 17 (`host.docker.internal:5434`). Sin este archivo, la API usa el Postgres de Docker. |
 
-Además, la imagen de la API se construyó con un Dockerfile temporal (fuera del repo) que le da más tiempo a
-`pip`, porque la instalación fallaba por lentitud de red. Por eso hay que levantarla con
-`docker compose up -d --no-build`.
+### Pedidos pendientes para el backend (Santiago)
 
-### Pedidos para el backend (Santiago)
-
-Están detallados en [`frontend/PENDIENTES.md`](frontend/PENDIENTES.md#pedidos-para-el-backend-santiago). Los principales:
-1. Falta `backend/.env.example` y no hay `.gitignore` en la raíz ni en `backend/` (el `.env` se podría subir por error).
-2. `inventario.bundle` está versionado en la raíz.
-3. El OpenAPI de los errores 422 no coincide con lo que responde la API.
-4. Un CLIENTE no puede cancelar su propia venta PENDIENTE ni editarla.
-5. Puerto de Postgres fijo en `docker-compose.yml` (sugerencia: `"${DB_PORT:-5432}:5432"`).
-6. `pip install` en el Dockerfile falla con redes lentas (sugerencia: `ENV PIP_DEFAULT_TIMEOUT=120 PIP_RETRIES=10`).
+Resueltos con los cambios de arriba: `.env.example`, `.gitignore`, puerto configurable y timeout de pip.
+Siguen abiertos (detalle en [`frontend/PENDIENTES.md`](frontend/PENDIENTES.md#pedidos-para-el-backend-santiago)):
+1. `inventario.bundle` está versionado en la raíz.
+2. El OpenAPI de los errores 422 no coincide con lo que responde la API.
+3. Un CLIENTE no puede cancelar su propia venta PENDIENTE ni editarla.
 
 ---
 
 ## 4. Cómo ejecutar todo (Windows)
 
 1. Abrir **Docker Desktop**.
-2. Backend (terminal 1):
+2. En una terminal:
    ```powershell
    cd backend
-   docker compose up -d --no-build
+   Copy-Item .env.example .env              # solo la primera vez (ajusta DB_PORT si el 5432 está ocupado)
+   docker compose up -d --build             # base de datos + API + frontend
+   docker compose exec api python -m app.seed   # solo si la API usa la base de Docker y está vacía
    ```
-   Comprobar http://localhost:8000/health. La API usa la base `inventario` de PostgreSQL 17.
-3. Frontend (terminal 2):
-   ```powershell
-   cd frontend
-   npm install            # solo la primera vez
-   npm run dev
-   ```
-   Abrir http://localhost:3000 y entrar con un usuario de la tabla del README.
+3. Abrir http://localhost:3000 y entrar con un usuario de la tabla del README.
+   La API queda en http://localhost:8000/docs.
+
+Para desarrollar el frontend con recarga automática: `docker compose up -d db api` y luego, en `frontend/`,
+`npm run dev` (ver [`frontend/README.md`](frontend/README.md)). Si el contenedor `frontend` está corriendo,
+apágalo antes (`docker compose stop frontend`) porque ambos usan el puerto 3000.

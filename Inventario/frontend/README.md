@@ -9,18 +9,25 @@ Todos los comandos son para **PowerShell en Windows**. Si la ruta tiene espacios
 ## Requisitos
 
 - **Node.js 20.9 o superior** (probado con Node 24) y npm.
-- La **API corriendo** en `http://localhost:8000` (ver `backend/README.md`; con Docker:
-  `docker compose up -d --build` y `docker compose exec api python -m app.seed`).
-  > Si el puerto 5432 ya lo usa otro PostgreSQL, crea `backend/docker-compose.override.yml` (no lo subas):
-  > ```yaml
-  > services:
-  >   db:
-  >     ports: !override
-  >       - "5435:5432"
-  > ```
-  > La API no cambia (dentro de Docker usa `db:5432`); solo cambia el puerto para conectarte desde Windows.
+- La **API corriendo** en `http://localhost:8000` (ver `backend/README.md`). Con Docker, solo la base y la
+  API: `docker compose up -d --build db api` (en `backend/`). Si el puerto 5432 ya lo usa otro PostgreSQL,
+  pon `DB_PORT=5435` (u otro libre) en `backend/.env`.
 
-## Instalación
+## Con Docker (sin instalar Node)
+
+El `docker-compose.yml` del backend incluye el servicio `frontend` (este `Dockerfile`, modo *standalone*):
+
+```powershell
+cd backend
+docker compose up -d --build        # db + api + frontend → http://localhost:3000
+```
+
+- `NEXT_PUBLIC_API_URL` se **incrusta al construir** la imagen (es la URL que usa el navegador). Si la cambias
+  en `backend/.env`, reconstruye: `docker compose up -d --build frontend`.
+- El contenedor usa el puerto 3000 (`FRONTEND_PORT`). Para usar `npm run dev`, primero
+  `docker compose stop frontend`.
+
+## Instalación (desarrollo)
 
 ```powershell
 cd "D:\ruta\a\Inventario\frontend"

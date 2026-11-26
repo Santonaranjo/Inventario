@@ -50,8 +50,8 @@ las cantidades del carrito tienen nombre accesible único ("Cantidad de …").
 
 ## Pedidos para el backend (Santiago)
 
-1. **Falta `backend/.env.example`:** el README dice `Copy-Item .env.example .env`, pero el archivo no está en el repo.
-2. **No hay `.gitignore` en la raíz ni en `backend/`:** `backend/.env` (con `JWT_SECRET_KEY`) se podría subir por
+1. ~~**Falta `backend/.env.example`:**~~ ✅ Resuelto (`backend/.env.example`). el README dice `Copy-Item .env.example .env`, pero el archivo no está en el repo.
+2. ~~**No hay `.gitignore` en la raíz ni en `backend/`:**~~ ✅ Resuelto (`.gitignore` en la raíz). `backend/.env` (con `JWT_SECRET_KEY`) se podría subir por
    error. El frontend tiene el suyo.
 3. **`inventario.bundle` está versionado en la raíz** (85 KB); parece subido por error.
 4. **OpenAPI de los 422:** documenta `HTTPValidationError` (formato por defecto de FastAPI), pero la API responde
@@ -64,10 +64,10 @@ las cantidades del carrito tienen nombre accesible único ("Cantidad de …").
 7. **Sin buscador de usuarios CLIENTE sin ficha** para vincular desde Clientes (`GET /usuarios?rol=CLIENTE&sin_cliente=true`).
 8. **Rutas del README/handoff** apuntan a la carpeta de Santiago (`C:\Users\Santiago\...`); conviene usar rutas relativas.
 9. **Python:** el README pide 3.12; con 3.11 al menos `app.openapi()` funciona (no se probó el resto).
-10. **Puerto de Postgres fijo en 5432** en `docker-compose.yml`. Si el equipo ya tiene PostgreSQL (aquí 5432-5434
+10. ✅ Resuelto (`DB_PORT` en `.env`). **Puerto de Postgres fijo en 5432** en `docker-compose.yml`. Si el equipo ya tiene PostgreSQL (aquí 5432-5434
     estaban ocupados), toca editar el archivo versionado. Sugerencia: `"${DB_PORT:-5432}:5432"`. Mientras tanto, se
     puede usar un `docker-compose.override.yml` local (no versionado) con `ports: !override ["5435:5432"]`.
-11. **`pip install` en el Dockerfile falla con redes lentas** ("No matching distribution found" por timeout).
+11. ✅ Resuelto (`PIP_DEFAULT_TIMEOUT`/`PIP_RETRIES` en el Dockerfile). **`pip install` en el Dockerfile falla con redes lentas** ("No matching distribution found" por timeout).
     Sugerencia: `ENV PIP_DEFAULT_TIMEOUT=120 PIP_RETRIES=10` en el `Dockerfile`.
 
 ## Mejoras futuras

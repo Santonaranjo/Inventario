@@ -20,11 +20,12 @@ Requisito: Docker Desktop abierto.
 
 ```powershell
 Copy-Item .env.example .env              # solo la primera vez
-docker compose up -d --build             # levanta Postgres 16 y la API (aplica migraciones al arrancar)
+docker compose up -d --build             # levanta Postgres 16, la API (aplica migraciones) y el frontend
 docker compose exec api python -m app.seed   # admin + datos de prueba
 ```
 
-Abre http://localhost:8000/docs.
+Abre http://localhost:8000/docs (API) y http://localhost:3000 (frontend).
+Para levantar solo la API y la base: `docker compose up -d --build db api`.
 
 | Tarea | Comando |
 |---|---|
@@ -39,9 +40,10 @@ Abre http://localhost:8000/docs.
 > La base `inventario_test` la crea `docker/init-test-db.sql` **solo la primera vez** que se crea el volumen.
 > Si ya tenías el volumen de antes: `docker compose exec db psql -U inventario -c "CREATE DATABASE inventario_test;"`
 
-> **El puerto 5432 está ocupado** (por ejemplo, porque ya tienes PostgreSQL instalado en Windows): en
-> `docker-compose.yml` cambia `"5432:5432"` por `"5433:5432"` y, si usas la opción C, pon el puerto 5433
-> en `DATABASE_URL`.
+> **Algún puerto está ocupado** (por ejemplo, porque ya tienes PostgreSQL instalado en Windows): no edites
+> `docker-compose.yml`; en tu `.env` cambia `DB_PORT` (p. ej. `DB_PORT=5435`) o `FRONTEND_PORT`, y si usas la
+> opción C pon ese mismo puerto en `DATABASE_URL`. Para otros ajustes propios de tu equipo usa un
+> `docker-compose.override.yml` (está en `.gitignore`).
 
 ## Opción B: sin Docker (Python y PostgreSQL instalados en Windows)
 
@@ -138,6 +140,9 @@ anulación con reversión de stock, facturación (consecutivo, IVA, duplicados) 
 | `CORS_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000` | Orígenes del frontend, separados por coma |
 | `IVA_PORCENTAJE` | `19.00` | IVA aplicado al generar facturas |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NOMBRE` | | Admin que crea el seed |
+| `DB_PORT` | `5432` | Solo docker-compose: puerto de Postgres en Windows |
+| `FRONTEND_PORT` | `3000` | Solo docker-compose: puerto del frontend en Windows (si cambia, agrégalo a `CORS_ORIGINS`) |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000/api/v1` | Solo docker-compose: URL de la API que usa el navegador (se incrusta al construir el frontend) |
 
 ## Arquitectura
 

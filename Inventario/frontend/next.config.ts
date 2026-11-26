@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Genera .next/standalone (servidor mínimo) para la imagen de Docker. No afecta `npm run dev`.
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   experimental: {

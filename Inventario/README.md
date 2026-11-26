@@ -55,31 +55,35 @@ Inventario/
 
 ## Inicio rápido (Windows, Docker Desktop)
 
+Un solo comando levanta **todo**: PostgreSQL, la API y el frontend.
+
 ```powershell
-cd "C:\Users\Santiago\Documents\Ucaldas\5to Semestre\Programacion web ll\Inventario\backend"
-Copy-Item .env.example .env
-docker compose up -d --build
-docker compose exec api python -m app.seed
+cd "<ruta al repo>\Inventario\backend"
+Copy-Item .env.example .env              # solo la primera vez
+docker compose up -d --build             # db + api + frontend
+docker compose exec api python -m app.seed   # datos de prueba (solo la primera vez)
 ```
 
-- API: http://localhost:8000/api/v1
-- Documentación: http://localhost:8000/docs
+- Frontend: http://localhost:3000
+- API: http://localhost:8000/api/v1 · Documentación: http://localhost:8000/docs
 - Usuarios: ver [Usuarios de prueba](#usuarios-de-prueba).
 
-Instrucciones sin Docker, migraciones y pruebas: [`backend/README.md`](backend/README.md).
+> **Puertos ocupados:** si el 5432 (Postgres) o el 3000 (frontend) ya están en uso, cámbialos en
+> `backend/.env` con `DB_PORT` y `FRONTEND_PORT`; no hace falta editar `docker-compose.yml`. Ajustes propios
+> de tu equipo (por ejemplo, que la API use otro PostgreSQL) van en un `backend/docker-compose.override.yml`,
+> que está en `.gitignore`. Ver [`CAMBIOS.md`](CAMBIOS.md#3-backend-backend-y-docker).
 
-> **En este equipo** el puerto 5432 está ocupado y la API usa PostgreSQL 17 (puerto 5434) mediante un
-> `backend/docker-compose.override.yml` local; la imagen ya está construida, así que se levanta con
-> `docker compose up -d --no-build`. Detalle en [`CAMBIOS.md`](CAMBIOS.md#3-backend-backend).
+Instrucciones sin Docker, migraciones y pruebas del backend: [`backend/README.md`](backend/README.md).
 
-Frontend:
+**Frontend en modo desarrollo** (recarga al guardar, sin Docker para el frontend):
 ```powershell
+docker compose -f backend/docker-compose.yml up -d db api   # solo base de datos y API
 cd frontend
 npm install
 Copy-Item .env.example .env.local
 npm run dev
 ```
-Abrir http://localhost:3000. Instalación, variables y pruebas: [`frontend/README.md`](frontend/README.md).
+Instalación, variables y pruebas: [`frontend/README.md`](frontend/README.md).
 
 ## Stack
 
@@ -98,6 +102,5 @@ Abrir http://localhost:3000. Instalación, variables y pruebas: [`frontend/READM
 
 - Rama principal: `main`. Para cambios grandes, usar ramas `feature/<nombre>` y Pull Request.
 - Commits en el formato `tipo(área): descripción`, por ejemplo `feat(ventas): …` o `fix(auth): …`.
-- Nunca subir `.env` ni `.env.local`. El frontend los ignora en `frontend/.gitignore`; **el backend aún no
-  tiene `.gitignore`**, así que hay que tener cuidado de no agregar `backend/.env` ni
-  `backend/docker-compose.override.yml`.
+- Nunca subir `.env`, `.env.local` ni `docker-compose.override.yml`: el `.gitignore` de la raíz y el de
+  `frontend/` ya los ignoran. Sí se suben las plantillas `.env.example`.
