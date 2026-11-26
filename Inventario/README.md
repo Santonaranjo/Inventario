@@ -11,15 +11,41 @@ Gestiona productos, stock y movimientos de inventario, clientes, ventas y factur
 | Área | Responsable | Estado |
 |---|---|---|
 | Backend (FastAPI) | Santiago Naranjo | ✅ Primera versión lista |
-| Frontend (Next.js) | Juliana | ⏳ Por iniciar |
-| Base de datos (PostgreSQL) | Equipo de BD | ⏳ Revisando la propuesta de esquema |
+| Frontend (Next.js) | Juliana | ✅ Primera versión lista (rama `feature/frontend`) |
+| Base de datos (PostgreSQL) | Equipo de BD | ✅ Esquema adaptado al backend en PostgreSQL 17 |
+
+El detalle de todo lo que se hizo en frontend, base de datos y backend está en [`CAMBIOS.md`](CAMBIOS.md).
+
+## Usuarios de prueba
+
+Son credenciales **solo para desarrollo**. Dependen de la base de datos que use la API:
+
+**Base `inventario` en PostgreSQL 17** (puerto 5434; la que usa la API en este equipo, cargada con
+[`database/inventario_backend.sql`](database/inventario_backend.sql)):
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| ADMIN | `admin@inventario.com` | `Admin123*` |
+| CLIENTE | `carlos.ramirez@correo.com` | `Cliente123*` |
+
+**Base de Docker con el seed del backend** (`docker compose exec api python -m app.seed`):
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| ADMIN | `admin@inventario.com` | `Admin123*` |
+| CLIENTE | `cliente@inventario.com` | `Cliente123*` |
+
+También se puede crear una cuenta de cliente nueva desde la pantalla **Registrarse** del frontend.
 
 ## Estructura
 
 ```
 Inventario/
   backend/    API REST en Python: FastAPI, SQLAlchemy, Alembic, PostgreSQL 16
-  frontend/   Next.js (Juliana)
+  frontend/   Next.js 16 + TypeScript (Juliana) — ver frontend/README.md
+  database/
+    inventario_backend.sql  base completa (esquema del backend + datos de prueba + vistas)
+  CAMBIOS.md  registro de cambios de frontend, base de datos y backend
   docs/
     HANDOFF_FRONTEND.md   guía para consumir la API
     HANDOFF_DB.md         modelo ER, diccionario de datos y puntos abiertos
@@ -29,18 +55,35 @@ Inventario/
 
 ## Inicio rápido (Windows, Docker Desktop)
 
+Un solo comando levanta **todo**: PostgreSQL, la API y el frontend.
+
 ```powershell
-cd "C:\Users\Santiago\Documents\Ucaldas\5to Semestre\Programacion web ll\Inventario\backend"
-Copy-Item .env.example .env
-docker compose up -d --build
-docker compose exec api python -m app.seed
+cd "<ruta al repo>\Inventario\backend"
+Copy-Item .env.example .env              # solo la primera vez
+docker compose up -d --build             # db + api + frontend
+docker compose exec api python -m app.seed   # datos de prueba (solo la primera vez)
 ```
 
-- API: http://localhost:8000/api/v1
-- Documentación: http://localhost:8000/docs
-- Admin de prueba: `admin@inventario.com` / `Admin123*`
+- Frontend: http://localhost:3000
+- API: http://localhost:8000/api/v1 · Documentación: http://localhost:8000/docs
+- Usuarios: ver [Usuarios de prueba](#usuarios-de-prueba).
 
-Instrucciones sin Docker, migraciones y pruebas: [`backend/README.md`](backend/README.md).
+> **Puertos ocupados:** si el 5432 (Postgres) o el 3000 (frontend) ya están en uso, cámbialos en
+> `backend/.env` con `DB_PORT` y `FRONTEND_PORT`; no hace falta editar `docker-compose.yml`. Ajustes propios
+> de tu equipo (por ejemplo, que la API use otro PostgreSQL) van en un `backend/docker-compose.override.yml`,
+> que está en `.gitignore`. Ver [`CAMBIOS.md`](CAMBIOS.md#3-backend-backend-y-docker).
+
+Instrucciones sin Docker, migraciones y pruebas del backend: [`backend/README.md`](backend/README.md).
+
+**Frontend en modo desarrollo** (recarga al guardar, sin Docker para el frontend):
+```powershell
+docker compose -f backend/docker-compose.yml up -d db api   # solo base de datos y API
+cd frontend
+npm install
+Copy-Item .env.example .env.local
+npm run dev
+```
+Instalación, variables y pruebas: [`frontend/README.md`](frontend/README.md).
 
 ## Stack
 
@@ -52,10 +95,12 @@ Instrucciones sin Docker, migraciones y pruebas: [`backend/README.md`](backend/R
 | Autenticación | JWT (access + refresh), bcrypt |
 | Pruebas | pytest, httpx (TestClient) |
 | Entorno | Docker, docker-compose |
-| Frontend | Next.js |
+| Frontend | Next.js 16, TypeScript, Tailwind CSS 4, shadcn/ui, TanStack Query, React Hook Form + Zod |
+| Pruebas frontend | Vitest, Testing Library, MSW, Playwright |
 
 ## Flujo de Git
 
 - Rama principal: `main`. Para cambios grandes, usar ramas `feature/<nombre>` y Pull Request.
 - Commits en el formato `tipo(área): descripción`, por ejemplo `feat(ventas): …` o `fix(auth): …`.
-- Nunca subir `.env` (ya está en `.gitignore`).
+- Nunca subir `.env`, `.env.local` ni `docker-compose.override.yml`: el `.gitignore` de la raíz y el de
+  `frontend/` ya los ignoran. Sí se suben las plantillas `.env.example`.
